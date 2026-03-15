@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusGuard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --soft-red: #8B6BB8;
+      --soft-green: #D8C4E8;
+      --cream: #F5F5DC;
+      --light-cream: #FAF9F6;
+      --dark-text: #000000;
+      --muted-text: #6B6B6B;
+      --border: rgba(139, 107, 184, 0.2);
+      --border-hot: rgba(139, 107, 184, 0.5);
+      --surface: rgba(250, 249, 246, 0.95);
+      --bg: var(--cream);
+      --bg2: var(--light-cream);
+      --text: var(--dark-text);
+      --text-dim: var(--muted-text);
+      --text-muted: rgba(107, 107, 107, 0.7);
+      --purple-dark: #7C5AC2;
+      --purple-light: #E6D9F5;
+      --purple-accent: #A582D8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      max-height: 600px;
+      min-height: 480px;
+      background: var(--bg);
+      font-family: 'Nunito', sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      overflow-y: auto;
+      position: relative;
+      padding-right: 8px;
+    }
+
+    /* Ambient glow */
+    .ambient {
+      position: fixed;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(139, 107, 184, 0.15) 0%, transparent 70%);
+      top: -50px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      padding: 0 0 20px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 22px 22px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(250, 249, 246, 0.95) 0%, transparent 100%);
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #8B6BB8, transparent);
+      opacity: 0.5;
+    }
+
+    .logo-mark {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #A582D8, #D8C4E8);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 16px rgba(168, 218, 220, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-family: 'Nunito', sans-serif;
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: var(--dark-text);
+      line-height: 1;
+    }
+
+    .header-text .tagline {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .status-badge {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.active {
+      background: rgba(139, 107, 184, 0.2);
+      border: 1px solid rgba(139, 107, 184, 0.5);
+      color: #8B6BB8;
+      box-shadow: 0 0 12px rgba(139, 107, 184, 0.25);
+    }
+
+    .status-badge.inactive {
+      background: rgba(107, 107, 107, 0.2);
+      border: 1px solid rgba(107, 107, 107, 0.3);
+      color: var(--muted-text);
+    }
+
+    /* ── TIME BLOCK ── */
+    .time-block {
+      margin: 16px 20px 0;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .time-block.is-active {
+      border-color: rgba(139, 107, 184, 0.4);
+      background: rgba(250, 249, 246, 0.95);
+    }
+
+    .time-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #8B6BB8, #D8C4E8);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .time-icon { font-size: 20px; }
+
+    .time-info { flex: 1; }
+    .time-info .label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 2px;
+    }
+
+    .time-info .value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .time-info .value span {
+      color: var(--rose);
+    }
+
+    .countdown {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #8B6BB8;
+      text-align: right;
+      line-height: 1.4;
+    }
+    .countdown .count-label {
+      color: var(--text-muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      margin: 16px 20px 0;
+    }
+
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── TAB NAV ── */
+    .tabbar {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px;
+      margin-top: 16px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #8B6BB8 0%, #A582D8 100%);
+      border-color: rgba(139, 107, 184, 0.8);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(139, 107, 184, 0.3);
+    }
+
+    .tab:focus {
+      outline: 2px solid #8B6BB8;
+      outline-offset: 2px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── MASTER TOGGLE ── */
+    .master-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .master-toggle:hover {
+      border-color: var(--border-hot);
+      background: rgba(250, 249, 246, 0.95);
+    }
+
+    .toggle-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toggle-icon { font-size: 18px; }
+
+    .toggle-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .toggle-sublabel {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch input { display: none; }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: rgba(110,80,140,0.3);
+      border: 1px solid rgba(139,107,184,0.4);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .switch-thumb {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: rgba(139,107,184,0.5);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    input:checked ~ .switch-track {
+      background: linear-gradient(135deg, #8B6BB8, #A582D8);
+      border-color: rgba(139,107,184,0.8);
+      box-shadow: 0 0 12px rgba(139,107,184,0.3);
+    }
+
+    input:checked ~ .switch-track .switch-thumb {
+      left: 23px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(139,107,184,0.4);
+    }
+
+    /* ── SITE BLOCKERS ── */
+    .sites-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .site-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .site-item:hover {
+      border-color: var(--border-hot);
+    }
+
+    .site-item.blocked {
+      border-color: rgba(139, 107, 184, 0.4);
+      background: rgba(216, 196, 232, 0.15);
+    }
+
+    .custom-site {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(216, 196, 232, 0.1);
+      border: 1px solid rgba(139, 107, 184, 0.3);
+      border-radius: 16px;
+    }
+
+    .custom-site-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .custom-site-input {
+      flex: 1;
+      padding: 8px 10px;
+      background: var(--light-cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .custom-site-add {
+      padding: 8px 10px;
+      border: 1px solid #8B6BB8;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #8B6BB8, #A582D8);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .custom-site-add:hover {
+      opacity: 0.9;
+      box-shadow: 0 2px 8px rgba(139, 107, 184, 0.3);
+    }
+
+    .custom-sites-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .custom-site-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: var(--light-cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .custom-site-remove {
+      padding: 4px 10px;
+      border: 1px solid rgba(139, 107, 184, 0.5);
+      border-radius: 12px;
+      background: rgba(139, 107, 184, 0.15);
+      color: #8B6BB8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .custom-site-remove:hover {
+      background: rgba(139, 107, 184, 0.25);
+    }
+
+    .pause-row {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pause-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #8B6BB8;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #8B6BB8, #A582D8);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pause-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      box-shadow: 0 2px 8px rgba(139, 107, 184, 0.3);
+    }
+
+    .pause-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pause-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pause-indicator {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .pause-help {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.2;
+    }
+
+    .site-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .site-emoji { font-size: 14px; }
+
+    .site-name {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Mini toggle */
+    .mini-switch {
+      position: relative;
+      width: 32px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+
+    .mini-switch input { display: none; }
+
+    .mini-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 9px;
+      background: rgba(110,80,140,0.3);
+      border: 1px solid rgba(139,107,184,0.4);
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+
+    .mini-thumb {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: rgba(139,107,184,0.5);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    input:checked ~ .mini-track {
+      background: linear-gradient(135deg, #8B6BB8, #A582D8);
+      border-color: rgba(139,107,184,0.8);
+    }
+
+    input:checked ~ .mini-track .mini-thumb {
+      left: 17px;
+      background: #fff;
+    }
+
+    /* ── SCHEDULE SECTION ── */
+    .schedule-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .sched-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sched-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--rose);
+    }
+
+    .time-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 8px;
+    }
+
+    .time-inputs label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .time-inputs select,
+    .time-inputs input {
+      background: var(--light-cream);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .time-inputs select:hover,
+    .time-inputs select:focus,
+    .time-inputs input:hover,
+    .time-inputs input:focus {
+      border-color: var(--border-hot);
+    }
+
+    .time-sep {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ── DAYS ── */
+    .days-row {
+      display: flex;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .day-btn {
+      flex: 1;
+      aspect-ratio: 1;
+      max-width: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--light-cream);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-btn:hover {
+      border-color: var(--border-hot);
+      color: #8B6BB8;
+    }
+
+    .day-btn.on {
+      background: linear-gradient(135deg, rgba(216, 196, 232, 0.4), rgba(216, 196, 232, 0.2));
+      border-color: #8B6BB8;
+      color: #8B6BB8;
+      box-shadow: 0 0 8px rgba(139, 107, 184, 0.2);
+      font-weight: 700;
+    }
+
+    /* ── SAVE BUTTON ── */
+    .save-btn {
+      margin: 18px 20px 0;
+      width: calc(100% - 40px);
+      padding: 13px;
+      background: linear-gradient(135deg, #8B6BB8 0%, #A582D8 50%, #8B6BB8 100%);
+      border: none;
+      border-radius: 16px;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(139, 107, 184, 0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .save-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .save-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(139, 107, 184, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .save-btn:hover::before { left: 150%; }
+
+    .save-btn:active { transform: translateY(0); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      margin-top: 16px;
+      padding: 12px 20px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    footer p {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    footer span { color: var(--rose); }
+
+    /* Saved toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: linear-gradient(135deg, #E6D9F5, #F5F5DC);
+      border: 1px solid rgba(139, 107, 184, 0.5);
+      color: #8B6BB8;
+      padding: 10px 22px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(139, 107, 184, 0.3);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="wrapper">
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo-mark">🔥</div>
+      <div class="header-text">
+        <h1>FocusGuard</h1>
+        <div class="tagline">Deep work. No distractions.</div>
+      </div>
+      <div class="status-badge inactive" id="statusBadge">OFF</div>
+    </header>
+
+    <!-- TIME BLOCK -->
+    <div class="time-block" id="timeBlock">
+      <div class="time-icon">⏱</div>
+      <div class="time-info">
+        <div class="label">Current Status</div>
+        <div class="value" id="statusText">Checking...</div>
+      </div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+
+    <div class="tabbar" role="tablist">
+      <button type="button" class="tab active" data-tab="schedule" role="tab" aria-selected="true">Schedule</button>
+      <button type="button" class="tab" data-tab="focus" role="tab" aria-selected="false">Focus</button>
+    </div>
+
+    <div class="tab-content active" data-tab="schedule">
+      <div class="section">
+        <div class="section-title">Work Schedule</div>
+        <div class="time-inputs">
+          <label>From</label>
+          <input id="startTime" type="time" />
+          <span class="time-sep">→</span>
+          <label>To</label>
+          <input id="endTime" type="time" />
+        </div>
+
+        <div class="days-row" id="daysRow">
+          <button class="day-btn on" data-day="1">M</button>
+          <button class="day-btn on" data-day="2">T</button>
+          <button class="day-btn on" data-day="3">W</button>
+          <button class="day-btn on" data-day="4">T</button>
+          <button class="day-btn on" data-day="5">F</button>
+          <button class="day-btn on" data-day="6">S</button>
+          <button class="day-btn" data-day="0">S</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" data-tab="focus">
+      <div class="section">
+        <div class="section-title">Focus Mode</div>
+        <div class="master-toggle">
+          <div class="toggle-left">
+            <div class="toggle-icon">🛡️</div>
+            <div>
+              <div class="toggle-label">FocusGuard is enabled</div>
+              <div class="toggle-sublabel">Blocks only during work hours</div>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="masterToggle" checked disabled>
+            <div class="switch-track">
+              <div class="switch-thumb"></div>
+            </div>
+          </label>
+        </div>
+
+        <div class="pause-row">
+          <button class="pause-btn" id="pauseBtn" type="button">Pause 30m (0/2)</button>
+          <div class="pause-info">
+            <div class="pause-indicator" id="pauseIndicator">Pauses left: 2</div>
+            <div class="pause-help">Pause is limited to 2 times per day.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Block Sites</div>
+        <div class="sites-grid">
+          <div class="site-item blocked" data-site="instagram">
+            <div class="site-left">
+              <span class="site-emoji">📸</span>
+              <span class="site-name">Instagram</span>
+            </div>
+            <label class="mini-switch">
+              <input type="checkbox" data-site="instagram" checked>
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </label>
+          </div>
+          <div class="site-item blocked" data-site="facebook">
+            <div class="site-left">
+              <span class="site-emoji">📘</span>
+              <span class="site-name">Facebook</span>
+            </div>
+            <label class="mini-switch">
+              <input type="checkbox" data-site="facebook" checked>
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </label>
+          </div>
+          <div class="site-item blocked" data-site="twitter">
+            <div class="site-left">
+              <span class="site-emoji">𝕏</span>
+              <span class="site-name">X / Twitter</span>
+            </div>
+            <label class="mini-switch">
+              <input type="checkbox" data-site="twitter" checked>
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </label>
+          </div>
+          <div class="site-item" data-site="reddit">
+            <div class="site-left">
+              <span class="site-emoji">👽</span>
+              <span class="site-name">Reddit</span>
+            </div>
+            <label class="mini-switch">
+              <input type="checkbox" data-site="reddit">
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </label>
+          </div>
+          <div class="site-item blocked" data-site="tiktok">
+            <div class="site-left">
+              <span class="site-emoji">🎵</span>
+              <span class="site-name">TikTok</span>
+            </div>
+            <label class="mini-switch">
+              <input type="checkbox" data-site="tiktok" checked>
+              <div class="mini-track"><div class="mini-thumb"></div></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="custom-site">
+          <div class="custom-site-row">
+            <input id="newSiteInput" class="custom-site-input" type="text" placeholder="example.com" />
+            <button id="addSiteBtn" class="custom-site-add" type="button">Add</button>
+          </div>
+          <div id="customSitesList" class="custom-sites-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE -->
+    <button class="save-btn" id="saveBtn">Save Settings</button>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>YouTube <span>✦</span> Recommendations hidden <span>✦</span> Shorts blocked</p>
+    </footer>
+
+  </div>
+
+  <div class="toast" id="toast">✓ Settings saved</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

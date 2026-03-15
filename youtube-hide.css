@@ -1,0 +1,132 @@
+/* ── HOME PAGE: hide everything except top bar ── */
+body.focusguard-active ytd-browse[page-subtype="home"] #primary,
+body.focusguard-active ytd-browse[page-subtype="home"] #secondary,
+body.focusguard-active ytd-rich-grid-renderer,
+body.focusguard-active iron-selector#chips,
+body.focusguard-active ytd-browse[page-subtype="home"] #contents,
+body.focusguard-active ytd-browse[page-subtype="home"] #masthead-ad,
+body.focusguard-active ytd-browse[page-subtype="home"] ytd-video-masthead-ad-renderer,
+body.focusguard-active ytd-browse[page-subtype="home"] #player-container {
+  display: none !important;
+}
+
+body.focusguard-active ytd-browse[page-subtype="home"] {
+  background: var(--yt-spec-base-background) !important;
+}
+
+/* ── Make sidebar text readable in both modes ── */
+body.focusguard-active #guide-content,
+body.focusguard-active #guide-inner-content {
+  background: var(--yt-spec-base-background) !important;
+}
+
+body.focusguard-active ytd-guide-entry-renderer {
+  --paper-item-focused-before-opacity: 0.1;
+}
+
+/* ── SHORTS: hide everywhere ── */
+body.focusguard-active ytd-reel-shelf-renderer,
+body.focusguard-active ytd-rich-shelf-renderer[is-shorts],
+body.focusguard-active [is-shorts],
+body.focusguard-active ytd-guide-entry-renderer a[href="/shorts"],
+body.focusguard-active #endpoint[href="/shorts"],
+body.focusguard-active yt-chip-cloud-chip-renderer[chip-style="STYLE_HOME_FILTER"][title="Shorts"],
+body.focusguard-active ytd-rich-shelf-renderer[has-chips],
+body.focusguard-active .yt-spec-shelf-primary-info-renderer[has-chips],
+body.focusguard-active yt-lockup[grid-item][is-shorts],
+body.focusguard-active ytd-video-renderer[is-shorts],
+body.focusguard-active [class*="shorts"],
+body.focusguard-active a[href*="/shorts"],
+body.focusguard-active ytd-browse[page-subtype="shorts"],
+body.focusguard-active div[class*="Shorts"] {
+  display: none !important;
+}
+
+/* ── SIDEBAR RECOMMENDATIONS on watch page ── */
+body.focusguard-active #secondary,
+body.focusguard-active #related,
+body.focusguard-active ytd-watch-next-secondary-results-renderer {
+  display: none !important;
+}
+
+/* ── Video Player Controls ── */
+/* Removed the global opacity 0.3 to prevent dimming valid videos */
+
+/* ── WATCH PAGE UI FIXES ── */
+body.focusguard-active ytd-watch-flexy #secondary,
+body.focusguard-active ytd-watch-next-secondary-results-renderer,
+body.focusguard-active #comments,
+body.focusguard-active #panels,
+body.focusguard-active ytd-merch-shelf-renderer,
+body.focusguard-active #primary-inner > #info,
+body.focusguard-active #primary-inner > #meta,
+body.focusguard-active #primary-inner > #ticket-shelf {
+  display: none !important;
+}
+
+body.focusguard-active ytd-watch-flexy[theater] #primary {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding-right: 0 !important;
+  height: 100vh !important; /* Force video to take full viewport height */
+}
+
+/* Hide everything except the player when in theater mode */
+body.focusguard-active ytd-watch-flexy[theater] #columns {
+  display: none !important;
+}
+
+body.focusguard-active ytd-watch-flexy:not([theater]) #primary {
+  max-width: 1000px !important;
+  margin: 0 auto !important;
+  float: none !important;
+}
+
+/* ── Banner Styling ── */
+#fg-banner-container {
+  position: absolute;
+  top: 56px; /* Below header */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  z-index: 10;
+}
+
+#fg-banner {
+  background: linear-gradient(135deg, #1a0000 0%, #2d0505 100%);
+  border: 1px solid #8B0000;
+  border-radius: 20px;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: 0 15px 50px rgba(139,0,0,0.3);
+  max-width: 500px;
+  width: 90%;
+  animation: FG-fade-in 0.5s ease-out;
+}
+
+@keyframes FG-fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fg-title {
+  color: #FF6B6B;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.fg-subtitle {
+  color: #ff9999;
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blocked – FocusGuard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0000;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Roboto', 'sans-serif';
+    }
+    .bg-glow {
+      position: fixed;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(139,0,0,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .card {
+      text-align: center;
+      padding: 64px 52px;
+      border: 1px solid rgba(139,0,0,0.35);
+      border-radius: 4px;
+      background: rgba(18,0,0,0.85);
+      max-width: 500px;
+      width: 92%;
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 20%; right: 20%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #8B0000, #FF4444, #8B0000, transparent);
+    }
+    .lock { font-size: 52px; margin-bottom: 28px; display: block; }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px;
+      font-weight: 900;
+      color: #FF4444;
+      margin-bottom: 14px;
+    }
+    p {
+      color: rgba(255,150,150,0.7);
+      font-size: 19px;
+      font-style: italic;
+      margin-bottom: 28px;
+      line-height: 1.65;
+    }
+    .info {
+      color: rgba(255,120,120,0.5);
+      font-size: 15px;
+      line-height: 1.9;
+      border-top: 1px solid rgba(139,0,0,0.3);
+      padding-top: 24px;
+    }
+
+    .info strong { color: rgba(255,150,150,0.8); }
+
+    .pause-state {
+      display: block;
+      margin: 10px 0 8px;
+      color: rgba(255, 170, 170, 0.75);
+      font-size: 14px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .resume-btn {
+      margin: 10px auto 0;
+      padding: 10px 16px;
+      border: 1px solid rgba(220, 70, 70, 0.65);
+      border-radius: 8px;
+      background: rgba(180, 20, 20, 0.7);
+      color: rgba(255, 230, 220, 0.95);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: block;
+    }
+
+    .resume-btn:hover {
+      background: rgba(200, 40, 40, 0.8);
+      border-color: rgba(240, 100, 100, 0.75);
+    }
+
+    .resume-btn:active {
+      transform: translateY(1px);
+    }
+
+    .domain {
+      margin-top: 18px;
+      padding: 10px 14px;
+      border: 1px solid rgba(139,0,0,0.35);
+      border-radius: 4px;
+      display: inline-block;
+      color: rgba(255,180,180,0.85);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+      font-size: 13px;
+      background: rgba(20,0,0,0.45);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="card">
+    <span class="lock">🔒</span>
+    <h1>Stay Focused.</h1>
+    <p>This site is blocked during<br>your deep work hours.</p>
+    <div class="info">
+      <strong>Work Hours Active:</strong> <span id="workHours">Mon–Sat, 9 AM – 6 PM</span><br>
+      <span id="pauseState"></span>
+      Come back when your work is done.<br>
+      You've got this. 💪
+    </div>
+    <button id="resumeBtn" class="resume-btn" hidden>Resume early</button>
+    <div class="domain" id="blockedDomain"></div>
+  </div>
+
+    <script src="blocked.js"></script>
+</body>
+</html>

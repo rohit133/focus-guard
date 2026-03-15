@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+node_modules/
+.vscode/
+.idea/
+.env
+dist/
+build/
+*.zip
+*.crx
+# Extension specific
+_metadata/
